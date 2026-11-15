@@ -12,7 +12,7 @@ export function createTouch(input) {
   const stickBase = document.getElementById('stick-base');
   const stickKnob = document.getElementById('stick-knob');
   const move = input.move;
-  const RADIUS = 38;
+  let stickR = 38;
   let seen = false;
   let stickId = -1;
   let lookId = -1;
@@ -52,10 +52,12 @@ export function createTouch(input) {
       const r = stickBase.getBoundingClientRect();
       const cx = r.left + r.width / 2;
       const cy = r.top + r.height / 2;
-      if (Math.hypot(e.clientX - cx, e.clientY - cy) > r.width / 2 + 30) return;
+      if (Math.hypot(e.clientX - cx, e.clientY - cy) > r.width * 0.75) return;
       stickId = e.pointerId;
       stickOX = cx;
       stickOY = cy;
+      // The ring scales with the screen: the knob may only travel to its edge.
+      stickR = Math.max(10, (r.width - stickKnob.getBoundingClientRect().width) / 2);
       ui.setPointerCapture(e.pointerId);
     } else if (lookId === -1) {
       lookId = e.pointerId;
@@ -70,12 +72,12 @@ export function createTouch(input) {
       const dx = e.clientX - stickOX;
       const dy = e.clientY - stickOY;
       const len = Math.hypot(dx, dy);
-      const cl = len > RADIUS ? RADIUS / len : 1;
+      const cl = len > stickR ? stickR / len : 1;
       const x = dx * cl;
       const y = dy * cl;
       stickKnob.style.transform = `translate(${x}px, ${y}px)`;
-      move.x = x / RADIUS;
-      move.y = -y / RADIUS;
+      move.x = x / stickR;
+      move.y = -y / stickR;
     } else if (e.pointerId === lookId) {
       input.look.x += (e.clientX - lookX) * 1.6;
       input.look.y += (e.clientY - lookY) * 1.6;
