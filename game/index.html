@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="icon" href="data:,">
 <title>Saltline — Tactical FPS</title>
 <style>
@@ -18,7 +18,7 @@
     --bad: #e05c4b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #14161a; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #14161a; touch-action: none; overscroll-behavior: none; }
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); }
   #game, #game canvas { position: fixed; inset: 0; }
   #game canvas { display: block; }
@@ -118,6 +118,25 @@
   #buy-msg { min-height: 18px; margin-top: 10px; font-size: 13px; color: var(--amber); }
   #buy-close { margin-top: 6px; width: 100%; padding: 8px; background: var(--teal); border: none; border-radius: 6px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
 
+  /* Touch controls: hidden until the first real touch. The layer sits under
+     the buy menu and overlay in DOM order, so those keep their taps. */
+  #touch-ui { position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; }
+  #touch-ui.on { display: block; }
+  #stick-base { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 50%; background: rgba(255, 255, 255, 0.08); display: none; }
+  #stick-knob { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
+  .tbtn { position: absolute; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 50%; background: rgba(16, 18, 22, 0.45); color: var(--ink); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+  .tbtn.held { background: rgba(255, 180, 84, 0.45); border-color: var(--amber); }
+  #t-fire { right: 26px; bottom: 118px; width: 78px; height: 78px; font-size: 13px; }
+  #t-aim { right: 122px; bottom: 108px; width: 56px; height: 56px; }
+  #t-jump { right: 30px; bottom: 214px; width: 56px; height: 56px; }
+  #t-crouch { right: 122px; bottom: 186px; width: 56px; height: 56px; }
+  #t-swap { right: 196px; bottom: 118px; width: 52px; height: 52px; }
+  #t-reload { right: 196px; bottom: 186px; width: 52px; height: 52px; }
+  #t-frag { right: 262px; bottom: 118px; width: 48px; height: 48px; }
+  #t-smoke { right: 262px; bottom: 178px; width: 48px; height: 48px; }
+  #t-use { right: 120px; bottom: 280px; width: 60px; height: 60px; }
+  #t-buy { right: 14px; top: 118px; width: 52px; height: 52px; }
+
   /* Start / pause / match overlay. */
   #overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10, 11, 14, 0.62); pointer-events: auto; }
   #overlay[hidden], #buy-menu[hidden], #channel[hidden], #spectate[hidden], #charge-ind[hidden] { display: none; }
@@ -170,6 +189,19 @@
   <div id="channel" hidden>
     <div id="channel-label"></div>
     <div id="channelbar"><div id="channel-fill"></div></div>
+  </div>
+  <div id="touch-ui">
+    <div id="stick-base"><div id="stick-knob"></div></div>
+    <div class="tbtn" id="t-fire">FIRE</div>
+    <div class="tbtn" id="t-aim">AIM</div>
+    <div class="tbtn" id="t-jump">JUMP</div>
+    <div class="tbtn" id="t-crouch">CRCH</div>
+    <div class="tbtn" id="t-swap">SWAP</div>
+    <div class="tbtn" id="t-reload">RLD</div>
+    <div class="tbtn" id="t-frag">FRAG</div>
+    <div class="tbtn" id="t-smoke">SMK</div>
+    <div class="tbtn" id="t-use">USE</div>
+    <div class="tbtn" id="t-buy">BUY</div>
   </div>
   <div id="buy-menu" class="panel" hidden>
     <h2>BUY EQUIPMENT</h2>
