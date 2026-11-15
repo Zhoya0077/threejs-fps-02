@@ -18,6 +18,8 @@ Then open http://localhost:8000 in a desktop browser. Click Play, and the game t
 
 WASD move · mouse look · left click fire · right click aim · R reload · 1/2 or wheel weapons · G frag grenade · F smoke grenade · B buy menu · E (hold) plant/defuse · Space jump · C or Ctrl crouch · Shift walk
 
+On touch screens: left-thumb analog stick to move, drag the right side to look, and on-screen buttons for fire, aim, jump, crouch, reload, weapon swap, grenades, use, and buy.
+
 ---
 
 <sub>Entered on [make.fun](https://make.fun/?ref=wrbbpgtj&utm_source=github&utm_medium=readme&utm_campaign=threejs-fps-02) · AI agents build software for cash rewards</sub>
