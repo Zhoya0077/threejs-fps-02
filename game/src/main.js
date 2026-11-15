@@ -10,6 +10,7 @@ import { createState, TICK, pushEvent, aliveOf } from './state.js';
 import { createTextures, glowTexture } from './textures.js';
 import { createAudio } from './audio.js';
 import { createInput } from './input.js';
+import { createTouch } from './touch.js';
 import { createWorld, buildAgentMesh, pointInSite } from './world.js';
 import { moveBody, groundSpeed, eyePosition, EYE_STAND } from './player.js';
 import {
@@ -110,6 +111,7 @@ const audio = createAudio();
 const effects = createEffects(scene, camera);
 const hud = createHud(S, world);
 const input = createInput(renderer.domElement, onLockChange);
+const touch = createTouch(input);
 
 setupMatch(S);
 let player = S.entities[0];
@@ -182,6 +184,7 @@ let vmSwayY = 0;
 let started = false;
 let paused = false;
 let frozen = false;
+let touchMode = false;
 let prevFire = false;
 let hintUntil = 0;
 let stepAcc = 0;
@@ -191,6 +194,7 @@ const camPos = { x: 0, y: 0, z: 0 };
 
 function onLockChange(locked) {
   if (shot) return;
+  if (touchMode) return;
   if (locked) {
     started = true;
     paused = false;
@@ -205,7 +209,16 @@ function onLockChange(locked) {
 hud.onPlay(() => {
   if (shot) return;
   audio.resume();
-  input.requestLock();
+  // Touch devices have no pointer lock: tapping play starts the game
+  // directly, and lock changes never pause it.
+  if (touch.isTouch()) {
+    touchMode = true;
+    started = true;
+    paused = false;
+    hud.hideOverlay();
+  } else {
+    input.requestLock();
+  }
 });
 hud.onRestart(() => {
   restartMatch(S);
@@ -214,7 +227,8 @@ hud.onRestart(() => {
   hud.hideOverlay();
   started = true;
   paused = false;
-  input.requestLock();
+  if (touch.isTouch()) touchMode = true;
+  else input.requestLock();
 });
 hud.onBuy((id) => {
   const msg = buyItem(S, player, id);
@@ -223,7 +237,7 @@ hud.onBuy((id) => {
 });
 hud.onCloseBuy(() => {
   hud.closeBuy();
-  if (started && !shot) input.requestLock();
+  if (started && !shot && !touchMode) input.requestLock();
 });
 
 function setHint(text, holdMs) {
@@ -238,10 +252,10 @@ function toggleBuy() {
   }
   if (hud.isBuyOpen()) {
     hud.closeBuy();
-    input.requestLock();
+    if (!touchMode) input.requestLock();
   } else {
     hud.openBuy(player);
-    input.releaseLock();
+    if (!touchMode) input.releaseLock();
   }
 }
 
@@ -267,20 +281,22 @@ function playerStep(dt) {
   vmSwayX += (-look.x * 0.0004 - vmSwayX) * Math.min(1, dt * 10);
   vmSwayY += (look.y * 0.0004 - vmSwayY) * Math.min(1, dt * 10);
 
-  // Move.
+  // Move: keyboard plus the analog stick, which also throttles speed.
   const k = input.keys;
-  const f = (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0);
-  const s = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+  const f = (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + input.move.y;
+  const s = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + input.move.x;
   const fx = -Math.sin(ent.yaw);
   const fz = -Math.cos(ent.yaw);
   const rx = Math.cos(ent.yaw);
   const rz = -Math.sin(ent.yaw);
   const jump = input.wasPressed('Space');
+  const touchMag = Math.hypot(input.move.x, input.move.y);
   moveBody(world, ent, fx * f + rx * s, fz * f + rz * s, dt, {
     crouch: k.has('ControlLeft') || k.has('KeyC'),
     slow: k.has('ShiftLeft') || k.has('ShiftRight'),
     ads,
     jump,
+    throttle: touchMag > 0 ? Math.min(1, touchMag) : 1,
   });
 
   // Footsteps: distance-based, silent while crouched or slow-walking.
@@ -316,6 +332,7 @@ function playerStep(dt) {
   if (input.wasPressed('Digit2')) switchWeapon(ent, 'pistol');
   const wheel = input.takeWheel();
   if (wheel !== 0) cycleWeapon(wheel > 0 ? 1 : -1);
+  if (input.wasPressed('KeyQ')) cycleWeapon(1);
   if (input.wasPressed('KeyG')) throwGrenade(S, ent, 'frag');
   if (input.wasPressed('KeyF')) throwGrenade(S, ent, 'smoke');
   if (input.wasPressed('KeyB')) toggleBuy();
@@ -432,7 +449,7 @@ function syncVisuals(dt, time) {
   eyePosition(view, camPos);
   camera.position.set(camPos.x, camPos.y, camPos.z);
   const lean = view === player
-    ? -((input.keys.has('KeyA') ? 1 : 0) - (input.keys.has('KeyD') ? 1 : 0)) * 0.012
+    ? -((input.keys.has('KeyA') ? 1 : 0) - (input.keys.has('KeyD') ? 1 : 0) + input.move.x) * 0.012
     : 0;
   camera.rotation.set(
     view.pitch + view.rPitch + effects.shakeY,
@@ -534,9 +551,9 @@ function frame(now) {
     hintUntil = 0;
   } else if (!hintUntil) {
     // Context hint, refreshed while nothing else claims the line.
-    if (S.phase === 'buy' && started) hud.setHint('Press B to buy — the round starts soon');
-    else if (player.hasCharge && pointInSite(player.pos.x, player.pos.z)) hud.setHint('Hold E to plant the charge');
-    else if (S.bomb.state === 'planted' && player.team === 'W') hud.setHint('Defuse the charge — hold E beside it');
+    if (S.phase === 'buy' && started) hud.setHint(touchMode ? 'Tap BUY — the round starts soon' : 'Press B to buy — the round starts soon');
+    else if (player.hasCharge && pointInSite(player.pos.x, player.pos.z)) hud.setHint(touchMode ? 'Hold USE to plant the charge' : 'Hold E to plant the charge');
+    else if (S.bomb.state === 'planted' && player.team === 'W') hud.setHint(touchMode ? 'Defuse the charge — hold USE beside it' : 'Defuse the charge — hold E beside it');
     else hud.setHint('');
   }
   renderer.render(scene, camera);

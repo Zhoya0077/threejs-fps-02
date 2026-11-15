@@ -6,6 +6,8 @@ export function createInput(canvas, onLockChange) {
   const pressed = new Set();
   const look = { x: 0, y: 0 };
   const mouse = { fire: false, ads: false };
+  // Analog move vector, written by touch controls: x strafe, y forward.
+  const move = { x: 0, y: 0 };
   let locked = false;
   let wheelDelta = 0;
 
@@ -56,6 +58,8 @@ export function createInput(canvas, onLockChange) {
     pressed.clear();
     mouse.fire = false;
     mouse.ads = false;
+    move.x = 0;
+    move.y = 0;
   }
 
   document.addEventListener('keydown', onKeyDown);
@@ -72,6 +76,7 @@ export function createInput(canvas, onLockChange) {
     keys,
     look,
     mouse,
+    move,
     isLocked() {
       return locked;
     },
@@ -82,6 +87,10 @@ export function createInput(canvas, onLockChange) {
       if (locked) document.exitPointerLock();
     },
     // Edge trigger: true once per physical press, consumed by the caller.
+    // press() injects one from another device, e.g. a touch button.
+    press(code) {
+      pressed.add(code);
+    },
     wasPressed(code) {
       if (pressed.has(code)) {
         pressed.delete(code);

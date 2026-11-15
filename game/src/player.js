@@ -32,6 +32,9 @@ export function moveBody(world, ent, wishX, wishZ, dt, opts) {
   if (crouch) maxSpeed = CROUCH_SPEED;
   else if (o.slow) maxSpeed = SLOW_SPEED;
   else if (o.ads) maxSpeed = ADS_SPEED;
+  // Analog throttle: a half-deflected stick walks at half speed. Keyboard
+  // and bots pass none, which means full speed.
+  if (o.throttle != null) maxSpeed *= Math.min(1, Math.max(0, o.throttle));
 
   const wishLen = Math.hypot(wishX, wishZ);
   const nx = wishLen > 0 ? wishX / wishLen : 0;
