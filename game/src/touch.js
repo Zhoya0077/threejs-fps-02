@@ -1,7 +1,7 @@
-// PUBG-style touch controls: a floating analog stick on the left half, drag
-// to look on the right half, and on-screen buttons for fire, aim, jump,
-// crouch, reload, weapon swap, grenades, use and buy. The layer stays hidden
-// until the first real touch, so mouse-and-keyboard play — and the staged
+// PUBG-style touch controls: a fixed analog stick bottom-left, drag to look
+// on the right half, and on-screen icon buttons for fire, aim, jump, crouch,
+// reload, weapon swap, grenades, use and buy. The layer stays hidden until
+// the first real touch, so mouse-and-keyboard play — and the staged
 // screenshots — never see it. All state flows through the input snapshot the
 // sim already reads: held keys, the look accumulator, mouse buttons, edge
 // presses and the analog move vector.
@@ -12,7 +12,7 @@ export function createTouch(input) {
   const stickBase = document.getElementById('stick-base');
   const stickKnob = document.getElementById('stick-knob');
   const move = input.move;
-  const RADIUS = 56;
+  const RADIUS = 38;
   let seen = false;
   let stickId = -1;
   let lookId = -1;
@@ -26,6 +26,8 @@ export function createTouch(input) {
     if (seen) return;
     seen = true;
     ui.classList.add('on');
+    const hud = document.getElementById('hud');
+    if (hud) hud.classList.add('touch');
     const controls = document.getElementById('controls');
     if (controls) {
       controls.innerHTML = 'Left thumb: analog stick to move · Right thumb: drag to look<br>Hold FIRE to shoot · AIM toggles aim · USE plants / defuses<br>BUY opens the shop · SWAP cycles weapons';
@@ -36,7 +38,7 @@ export function createTouch(input) {
     stickId = -1;
     move.x = 0;
     move.y = 0;
-    stickBase.style.display = 'none';
+    stickKnob.style.transform = 'translate(0px, 0px)';
   }
 
   ui.addEventListener('pointerdown', (e) => {
@@ -45,13 +47,15 @@ export function createTouch(input) {
     if (e.target.closest('.tbtn')) return;
     e.preventDefault();
     if (e.clientX < window.innerWidth * 0.45 && stickId === -1) {
+      // The stick is fixed: grab it only near its ring, and measure the
+      // deflection from the ring's centre.
+      const r = stickBase.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      if (Math.hypot(e.clientX - cx, e.clientY - cy) > r.width / 2 + 30) return;
       stickId = e.pointerId;
-      stickOX = e.clientX;
-      stickOY = e.clientY;
-      stickBase.style.display = 'block';
-      stickBase.style.left = `${stickOX}px`;
-      stickBase.style.top = `${stickOY}px`;
-      stickKnob.style.transform = 'translate(0px, 0px)';
+      stickOX = cx;
+      stickOY = cy;
       ui.setPointerCapture(e.pointerId);
     } else if (lookId === -1) {
       lookId = e.pointerId;
