@@ -118,42 +118,43 @@
   #buy-msg { min-height: 18px; margin-top: 10px; font-size: 13px; color: var(--amber); }
   #buy-close { margin-top: 6px; width: 100%; padding: 8px; background: var(--teal); border: none; border-radius: 6px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
 
-  /* Touch controls: hidden until the first real touch. PUBG-style layout:
-     fixed stick bottom-left, fire cluster bottom-right, status bottom-centre.
-     The layer sits under the buy menu and overlay in DOM order. */
+  /* Touch controls: hidden until the first real touch. PUBG-style layout,
+     sized in svh so the whole cluster scales with the phone's screen height
+     and fits short landscape viewports with the browser bar showing. The
+     layer sits under the buy menu and overlay in DOM order. */
   #touch-ui { position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; }
   #touch-ui.on { display: block; }
-  #stick-base { position: absolute; left: 30px; bottom: 26px; width: 124px; height: 124px; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 50%; background: rgba(255, 255, 255, 0.08); }
-  #stick-knob { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px 0 0 -24px; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
+  #stick-base { position: absolute; left: 8svh; bottom: 6svh; width: 32svh; height: 32svh; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 50%; background: rgba(255, 255, 255, 0.08); }
+  #stick-knob { position: absolute; left: 50%; top: 50%; width: 12svh; height: 12svh; margin: -6svh 0 0 -6svh; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
   .tbtn { position: absolute; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255, 255, 255, 0.35); border-radius: 50%; background: rgba(16, 18, 22, 0.45); color: var(--ink); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   .tbtn svg { width: 58%; height: 58%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tbtn.held { background: rgba(255, 180, 84, 0.45); border-color: var(--amber); }
-  #t-fire { right: 22px; bottom: 80px; width: 84px; height: 84px; }
-  #t-aim { right: 120px; bottom: 76px; width: 58px; height: 58px; }
-  #t-jump { right: 22px; bottom: 178px; width: 58px; height: 58px; }
-  #t-crouch { right: 120px; bottom: 162px; width: 58px; height: 58px; }
-  #t-swap { right: 196px; bottom: 80px; width: 50px; height: 50px; }
-  #t-reload { right: 196px; bottom: 144px; width: 50px; height: 50px; }
-  #t-frag { right: 260px; bottom: 80px; width: 46px; height: 46px; }
-  #t-smoke { right: 260px; bottom: 138px; width: 46px; height: 46px; }
-  #t-use { right: 196px; bottom: 208px; width: 56px; height: 56px; }
-  #t-buy { left: 172px; bottom: 44px; width: 52px; height: 52px; }
+  #t-fire { right: 6svh; bottom: 20svh; width: 22svh; height: 22svh; }
+  #t-aim { right: 31svh; bottom: 19svh; width: 15svh; height: 15svh; }
+  #t-jump { right: 6svh; bottom: 46svh; width: 15svh; height: 15svh; }
+  #t-crouch { right: 31svh; bottom: 40svh; width: 15svh; height: 15svh; }
+  #t-swap { right: 50svh; bottom: 20svh; width: 13svh; height: 13svh; }
+  #t-reload { right: 50svh; bottom: 36svh; width: 13svh; height: 13svh; }
+  #t-frag { right: 66svh; bottom: 20svh; width: 12svh; height: 12svh; }
+  #t-smoke { right: 66svh; bottom: 34svh; width: 12svh; height: 12svh; }
+  #t-use { right: 50svh; bottom: 52svh; width: 14svh; height: 14svh; }
+  #t-buy { left: 42svh; bottom: 12svh; width: 13svh; height: 13svh; }
   /* Touch HUD: minimap top-right, feed top-left, and the status panels as
-     one compact row along the bottom centre. */
-  #hud.touch #minimap { left: auto; right: 12px; }
-  #hud.touch #feed { right: auto; left: 12px; text-align: left; }
-  #hud.touch #healthbox { left: 50%; bottom: 6px; margin-left: -218px; min-width: 0; padding: 5px 12px; display: flex; align-items: center; gap: 10px; }
-  #hud.touch #health-num { font-size: 22px; }
-  #hud.touch #healthbar { width: 64px; margin-top: 0; }
+     one compact row centred on the bottom edge, all scaled to the screen. */
+  #hud.touch #minimap { left: auto; right: 3svh; top: 3svh; width: 34svh; height: auto; }
+  #hud.touch #feed { right: auto; left: 3svh; top: 3svh; text-align: left; font-size: 3.8svh; }
+  #hud.touch #healthbox { left: 50%; bottom: 2svh; transform: translateX(calc(-100% - 6px)); min-width: 0; padding: 1.2svh 3svh; display: flex; align-items: center; gap: 2.5svh; }
+  #hud.touch #health-num { font-size: 7svh; }
+  #hud.touch #healthbar { width: 16svh; margin-top: 0; }
   #hud.touch #armor-ind { display: none; }
-  #hud.touch #weaponbox { left: 50%; right: auto; bottom: 6px; margin-left: -58px; min-width: 0; padding: 5px 12px; display: flex; align-items: baseline; gap: 10px; text-align: left; }
-  #hud.touch #weapon-name { font-size: 11px; }
-  #hud.touch #ammo { font-size: 20px; }
-  #hud.touch #ammo-reserve { font-size: 13px; }
-  #hud.touch #grenades { font-size: 11px; margin-top: 0; }
-  #hud.touch #money { font-size: 14px; margin-top: 0; }
-  #hud.touch #hint { bottom: 110px; }
-  #hud.touch #channel { bottom: 78px; width: 180px; }
+  #hud.touch #weaponbox { left: 50%; right: auto; bottom: 2svh; transform: translateX(6px); min-width: 0; padding: 1.2svh 3svh; display: flex; align-items: baseline; gap: 2.5svh; text-align: left; }
+  #hud.touch #weapon-name { font-size: 3.5svh; }
+  #hud.touch #ammo { font-size: 6.5svh; }
+  #hud.touch #ammo-reserve { font-size: 4svh; }
+  #hud.touch #grenades { font-size: 3.5svh; margin-top: 0; }
+  #hud.touch #money { font-size: 4.5svh; margin-top: 0; }
+  #hud.touch #hint { bottom: 30svh; }
+  #hud.touch #channel { bottom: 22svh; width: 45svh; }
 
   /* Start / pause / match overlay. */
   #overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10, 11, 14, 0.62); pointer-events: auto; }
